@@ -3,9 +3,9 @@
     "path": "C:/Users/danee/Downloads/R/ec422_ps3_Ericson/ec422_ps3_Ericson.R",
     "project_path": "ec422_ps3_Ericson.R",
     "type": "r_source",
-    "hash": "1963379429",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1793571608802.0,
     "source_on_save": false,
     "relative_order": 1,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "67,0",
-        "scrollLine": "38"
+        "cursorPosition": "88,10",
+        "scrollLine": "59"
     },
     "folds": "",
     "lastKnownWriteTime": 1793572217,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1793572217591,
+    "last_content_update": 1793573335587,
     "read_only": false,
     "read_only_alternatives": []
 }
