@@ -65,3 +65,25 @@ retail_ts |>
          ) +
       theme_minimal()
 ##(2.7b): In the NSA data, we can observe seasonality in the form of spikes near the end of each year(December), and drops at the beginnigs of the year (January, February). We do not see this pattern in the seasonally adjusted data. The two series do appear to follow the same trend in the long run. 
+
+##(2.7c)
+can_gas |>
+  autoplot(Volume) +
+  labs(
+    title = "Canadian Gas Production",
+    x = NULL, y = "Volume, In Billions of Cubic Meters" 
+  ) +
+  theme_minimal()
+
+##(2.7d)
+can_gas |>
+  autoplot(Volume) +
+  labs(
+    title = "Canadian Gas Production",
+    x = NULL, y = "Volume, In Billions of Cubic Meters" 
+  ) +
+  theme_minimal() +
+  geom_smooth ()
+## I decided to add a trend line using geom_smooth, in order to more easily display how the series changes over time through the seasonality.
+
+##(Part 3)
