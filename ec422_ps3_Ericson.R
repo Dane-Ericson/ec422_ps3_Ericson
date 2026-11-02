@@ -179,3 +179,80 @@ retail_ts |>
 ## The month-over-month growth rates for the NSA series appear to be much noisier, as it contains the seasonal fluctuations from seasonal spending patterns. The SA series removes this variation, making the underlying monthly changes more apparent, similarly to the differences between the SA and NSA series in problem 2.7b.
 
 ##(Part 4)
+
+##(4.1)
+
+retail_ts |>
+  filter(series_id == "RSAFSNA") |>
+  gg_season(sales) +
+  labs(
+    title = "Seasonal Pattern in NSA Retail Sales",
+    y = "Millions of dollars"
+  ) +
+  theme_minimal()
+
+retail_ts |>
+  filter(series_id == "RSAFS") |>
+  gg_season(sales) +
+  labs(
+    title = "Seasonal Pattern in SA Retail Sales",
+    y = "Millions of dollars"
+  ) +
+  theme_minimal()
+
+can_gas |>
+  gg_season(log_volume) +
+  labs(
+    title = "Seasonal Pattern in Canadian Gas Production",
+    y = "Log of Volume"
+  ) +
+  theme_minimal()
+
+## The seasonal pattern in the can_gas data appears to describe higer production at the beginning and end of the year, with a dip from lower production in the middle months.
+
+##(4.2)
+can_gas |>
+  gg_subseries(log_volume) +
+  labs(
+    title = "Subseries Plot: Canadian Gas Production",
+    y = "log(Volume)"
+  )
+
+##(4.3)
+
+install.packages("seasonal")
+
+
+retail_nsa_x13 <- retail_ts |>
+  filter(series_id == "RSAFSNA") |>
+  model(x13 = X_13ARIMA_SEATS(sales)) |>
+  components()
+
+retail_nsa_x13 |> autoplot()
+
+## The seasonal factor appear to be the strongest in December, typically being about 10%-20% above trend. The size of the seasonal swings appears to decrease over time.
+
+sa_compare <- retail_nsa_x13 |>
+  as_tibble() |>
+  select(Month, mine = season_adjust) |>
+  left_join(
+    retail_ts |>
+      filter(series_id == "RSAFS") |>
+      as_tibble() |>
+      transmute(Month, census = sales),
+    by = "Month"
+  ) |>
+  mutate(pct_diff = 100 * (log(mine) - log(census)))
+
+sa_compare |>
+  ggplot(aes(x = Month, y = pct_diff)) +
+  geom_line() +
+  labs(
+    title = "My X-13 Seasonal Adjustment Minus the Census Bureau's",
+    x = NULL, y = "Difference (%)"
+  ) +
+  theme_minimal()
+
+## The difference between my seasonal adjustment and the Census Bureau's appears to be very small, with the difference being less than 1% for most of the series. However, larger differences (over 1%) appear around 2020, likely due to the COVID-19 pandemic's impact on retail sales.
+
+##(4.4)
