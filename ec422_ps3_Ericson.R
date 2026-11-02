@@ -256,3 +256,75 @@ sa_compare |>
 ## The difference between my seasonal adjustment and the Census Bureau's appears to be very small, with the difference being less than 1% for most of the series. However, larger differences (over 1%) appear around 2020, likely due to the COVID-19 pandemic's impact on retail sales.
 
 ##(4.4)
+can_gas_fit <- can_gas |>
+  model(TSLM(log_volume ~ trend() + season()))
+
+report(can_gas_fit)
+
+can_gas_fit |>
+  tidy() |>
+  select(term, estimate, std.error, statistic, p.value) |>
+  knitr::kable(digits = 3)
+
+## The estimated average monthly growth rate is 0.004, or 0.4% per month. The month with the most significant seasonal effect is January.
+
+can_gas_fit |>
+  augment() |>
+  ggplot(aes(x = Month)) +
+  geom_line(aes(y = log_volume, color = "Actual")) +
+  geom_line(aes(y = .fitted, color = "Fitted")) +
+  labs(title = "Linear Trend + Seasonal Dummies Fit: Canadian Gas Production",
+       y = "log(Volume)", color = NULL) +
+  theme_minimal()
+
+##The fitted model does well in the capturing the seasonal pattern in the data and the overall trend, however it is not as good at capturing short term fluctuations or areas of the data with less linear progression.
+
+can_gas_fit |> gg_tsresiduals()
+
+can_gas_fit |>
+  augment() |>
+  features(.innov, ljung_box, lag = 24)
+
+## At the 5% level, our ljung-box test returns a p-value of 0.00. This indicates that there is significant autocorrelation in the residuals, and that our model is not capturing all of the structure in the data.
+
+##(Part 5)
+
+##(5.1)
+gas_cv_fc <- can_gas |>
+  select(Month, Volume) |>
+  stretch_tsibble(.init = 240, .step = 1) |>
+  model(snaive = SNAIVE(Volume),
+        tslm   = TSLM(log(Volume) ~ trend() + season())) |>
+  forecast(h = 1)
+
+gas_cv_fc |>
+  accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
+
+##The dates of the first and last forecasts are January 1980 and February 2005, respectively. The SNAIVE model has a lower MAE and RMSE than the TSLM model, indicating that both errors agree that it is the better model for this data.
+
+##(5.2)
+errs <- gas_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(can_gas) |> select(Month, actual = Volume),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e) |>
+  na.omit()
+
+forecast::dm.test(errs$snaive, errs$tslm, h = 1, power = 1)
+
+## The DM statistic is -31.278, and the p-value is essentially 0.00 (<2.2e-16). This indicates that the SNAIVE model is significantly better than the TSLM model at the 5% level, and we reject the null hypothesis that the two models have equal predictive accuracy.
+
+##(5.3)
+gas_cv_fc <- can_gas |>
+  select(Month, Volume) |>
+  slide_tsibble(.size = 240, .step = 1) |>
+  model(snaive = SNAIVE(Volume),
+        tslm   = TSLM(log(Volume) ~ trend() + season())) |>
+  forecast(h = 1)
+
+gas_cv_fc |>
+  accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
+
+##The accuracy of our snaive forecast didn't change much, but the accuracy of our tslm forecast improved significantly. This is likely because the tsl, model is able to use more recent data to make its predictions, which is likely more relevant than older data. The SNAIVE model is not affected by this, as it only uses the most recent observation to make its prediction.
