@@ -162,5 +162,20 @@ can_gas |>
   theme_minimal()
 
 ## I think the approximation is rather good, as the gap between the growth rates is small at most points, despite containing a few spikes in their difference.
+##(3.3)
+retail_ts <- retail_ts |>
+  group_by_key() |>
+  mutate(growth_mom = 100 * difference(log(sales))) |>
+  ungroup()
 
+retail_ts |>
+  autoplot(growth_mom) +
+  labs(
+    title = "Month-over-Month Growth: SA vs. NSA Retail Sales",
+    x = NULL, y = "Growth rate (%)", color = NULL
+  ) +
+  theme_minimal()
 
+## The month-over-month growth rates for the NSA series appear to be much noisier, as it contains the seasonal fluctuations from seasonal spending patterns. The SA series removes this variation, making the underlying monthly changes more apparent, similarly to the differences between the SA and NSA series in problem 2.7b.
+
+##(Part 4)
